@@ -6,10 +6,23 @@
 <title>Kato’s T-Gel Daily Tracker</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <style>
-  :root{--bg:#0b0c10;--card:#15171c;--ink:#e9edf1;--muted:#9ba3ae;--accent:#6ee7ff;--accent2:#a78bfa}
+  :root{
+    --bg:#0b0c10; --card:#15171c; --ink:#e9edf1; --muted:#9ba3ae; --accent:#6ee7ff; --accent2:#a78bfa;
+    /* metric colors */
+    --c-pumps:#90be6d; --t-pumps:rgba(144,190,109,.12);
+    --c-mood:#4cc9f0;  --t-mood:rgba(76,201,240,.12);
+    --c-libido:#f94144;--t-libido:rgba(249,65,68,.12);
+    --c-app:#f8961e;   --t-app:rgba(248,150,30,.12);
+    --c-energy:#f9c74f;--t-energy:rgba(249,199,79,.12);
+    --c-sleep:#9d4edd; --t-sleep:rgba(157,78,221,.12);
+    --c-bg:#06d6a0;    --t-bg:rgba(6,214,160,.12);
+    --c-skin:#f72585;  --t-skin:rgba(247,37,133,.12);
+    --c-voice:#7209b7; --t-voice:rgba(114,9,183,.12);
+    --c-period:#d62828;--t-period:rgba(214,40,40,.12);
+  }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:980px;margin:32px auto;padding:0 16px}
+  .wrap{max-width:1000px;margin:32px auto;padding:0 16px}
   h1{margin:0 0 8px;font-size:28px}
   .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 
@@ -19,31 +32,42 @@
     padding:10px 14px;border-radius:12px;cursor:pointer;
     transition:background .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease
   }
-  .tabs button.active{
-    background:var(--accent); color:#001018; border-color:var(--accent);
-    box-shadow:0 0 18px rgba(110,231,255,.45);
-  }
+  .tabs button.active{ background:var(--accent); color:#001018; border-color:var(--accent); box-shadow:0 0 18px rgba(110,231,255,.45); }
 
   .card{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
   input[type="date"],select,textarea,input[type="text"]{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
-  textarea{min-height:280px}
-  .small-notes{min-height:60px}
+  textarea{min-height:260px}
+  .small-notes{min-height:44px}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001018;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
   .btn.outline{background:none;border:1px solid #2a2f38;color:var(--ink)}
   .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
   .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .leftCol{display:flex;flex-direction:column;gap:14px}
-  .field{background:#101219;border:1px solid #2a2f38;border-radius:12px;padding:12px}
+  .field{border:1px solid #2a2f38;border-radius:12px;padding:12px}
   .rangeWrap{display:flex;gap:12px;align-items:center}
   .rangeWrap output{min-width:2ch;text-align:center}
   @media (max-width:760px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
 
+  /* pastel tints for fields + slider coloring via CSS variable */
+  .field[data-color]{background:var(--tint)}
+  .field[data-color] input[type="range"]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:999px; background:linear-gradient(90deg,var(--color),var(--color));
+    outline:none;
+  }
+  .field[data-color] input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:var(--color); border:2px solid #0b0c10;
+    box-shadow:0 0 0 3px color-mix(in oklab, var(--color) 30%, transparent);
+  }
+  .field[data-color] input[type="range"]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;background:var(--color);border:2px solid #0b0c10;
+  }
+  .field[data-color] input[type="range"]::-moz-range-track{height:6px;border-radius:999px;background:var(--color)}
+
   /* Chart canvases: uniform accent-blue glow */
   canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px;box-shadow:0 0 12px rgba(110,231,255,.4);}
   .charts{display:grid;gap:16px}
-  @media (min-width:860px){.charts{grid-template-columns:1fr 1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -63,7 +87,7 @@
       <!-- LEFT COLUMN -->
       <div class="leftCol">
         <!-- Pumps Taken -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-pumps);--tint:var(--t-pumps)">
           <label for="pumps">Pumps of T-Gel taken today</label>
           <select id="pumps">
             <option value="">-- Select --</option>
@@ -74,73 +98,82 @@
           </select>
         </div>
         <!-- Date -->
-        <div class="field">
+        <div class="field" data-color style="--color:#9ba3ae;--tint:rgba(155,163,174,.12)">
           <label for="date">Date</label>
           <input id="date" type="date">
         </div>
+
         <!-- Mood -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-mood);--tint:var(--t-mood)">
           <label for="mood">Mood (1–5)</label>
           <div class="rangeWrap">
             <input id="mood" type="range" min="1" max="5" step="1"><output id="moodVal"></output>
           </div>
         </div>
+
         <!-- Libido -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-libido);--tint:var(--t-libido)">
           <label for="libido">Libido (1–5)</label>
           <div class="rangeWrap">
             <input id="libido" type="range" min="1" max="5" step="1"><output id="libidoVal"></output>
           </div>
         </div>
+
         <!-- Appetite -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-app);--tint:var(--t-app)">
           <label for="appetite">Appetite (1–5)</label>
           <div class="rangeWrap">
             <input id="appetite" type="range" min="1" max="5" step="1"><output id="appetiteVal"></output>
           </div>
         </div>
+
         <!-- Energy -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-energy);--tint:var(--t-energy)">
           <label for="energy">Energy (1–5)</label>
           <div class="rangeWrap">
             <input id="energy" type="range" min="1" max="5" step="1"><output id="energyVal"></output>
           </div>
         </div>
+
         <!-- Sleep -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-sleep);--tint:var(--t-sleep)">
           <label for="sleep">Sleep Quality (1–5)</label>
           <div class="rangeWrap">
             <input id="sleep" type="range" min="1" max="5" step="1"><output id="sleepVal"></output>
           </div>
         </div>
+
         <!-- Bottom Growth -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-bg);--tint:var(--t-bg)">
           <label>Bottom Growth</label>
-          <div class="controls">
+          <div class="row">
             <label><input type="checkbox" id="bgSwelling"> Swelling</label>
             <label><input type="checkbox" id="bgSensitivity"> Sensitivity</label>
           </div>
           <input id="bgNotes" class="small-notes" type="text" placeholder="Notes on bottom growth">
         </div>
+
         <!-- Skin -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-skin);--tint:var(--t-skin)">
           <label for="skin">Skin Changes (1–5)</label>
           <div class="rangeWrap">
             <input id="skin" type="range" min="1" max="5" step="1"><output id="skinVal"></output>
           </div>
         </div>
+
         <!-- Voice -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-voice);--tint:var(--t-voice)">
           <label>Voice</label>
-          <div class="controls">
+          <div class="row">
             <label><input type="checkbox" id="voiceCracking"> Cracking</label>
             <label><input type="checkbox" id="voiceDeeper"> Deeper tone</label>
             <label><input type="checkbox" id="voiceNoChange"> No change</label>
           </div>
           <input id="voiceNotes" class="small-notes" type="text" placeholder="Notes on voice">
         </div>
+
         <!-- Period -->
-        <div class="field">
+        <div class="field" data-color style="--color:var(--c-period);--tint:var(--t-period)">
           <label for="period">Period?</label>
           <select id="period">
             <option value="">-- Select --</option>
@@ -155,12 +188,13 @@
 
       <!-- RIGHT COLUMN -->
       <div>
-        <div class="field">
+        <div class="field" data-color style="--color:#89a1b4;--tint:rgba(137,161,180,.12)">
           <label for="notes">General Notes</label>
           <textarea id="notes"></textarea>
         </div>
       </div>
     </div>
+
     <div class="controls">
       <button class="btn" id="saveBtn">Save Entry</button>
       <button class="btn outline" id="exportCsv">Export CSV</button>
@@ -176,16 +210,8 @@
   <!-- OVERVIEW -->
   <div id="viewOverview" class="card" style="display:none">
     <div class="charts">
-      <canvas id="lineMood"></canvas>
-      <canvas id="lineLibido"></canvas>
-      <canvas id="lineEnergy"></canvas>
-      <canvas id="lineSleep"></canvas>
-      <canvas id="barPumps"></canvas>
-      <canvas id="barAppetite"></canvas>
-      <canvas id="barSkin"></canvas>
-      <canvas id="barPeriod"></canvas>
-      <canvas id="barBottomGrowth"></canvas>
-      <canvas id="barVoice"></canvas>
+      <canvas id="lineAll" height="320"></canvas>
+      <canvas id="barAll" height="380"></canvas>
     </div>
   </div>
 </div>
@@ -196,7 +222,6 @@ const KEY = 'tgel-tracker-entries-v1';
 const BACKUP_KEY = 'tgel-tracker-auto-backup';
 
 function todayISO(){ const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); }
-
 function getEntries(){ try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch{return []} }
 function setEntries(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
 
@@ -265,15 +290,8 @@ $('importCsv').onchange = e => {
 };
 
 // tabs with active styling
-function showDaily(){
-  $('viewDaily').style.display='block'; $('viewOverview').style.display='none';
-  $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active');
-}
-function showOverview(){
-  $('viewDaily').style.display='none'; $('viewOverview').style.display='block';
-  $('tabDaily').classList.remove('active'); $('tabOverview').classList.add('active');
-  renderCharts();
-}
+function showDaily(){ $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active'); }
+function showOverview(){ $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; $('tabDaily').classList.remove('active'); $('tabOverview').classList.add('active'); renderCharts(); }
 $('tabDaily').onclick = showDaily;
 $('tabOverview').onclick = showOverview;
 
@@ -287,7 +305,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('autoBackup').addEventListener('change', ()=>localStorage.setItem(BACKUP_KEY, $('autoBackup').checked?'1':'0'));
 });
 
-// ----- Charts -----
+// ----- Charts (2 only) -----
 let charts = {};
 function destroyCharts(){ for(const k in charts){ try{ charts[k].destroy(); }catch{} } charts={}; }
 
@@ -296,66 +314,85 @@ function renderCharts(){
   const data = getEntries().sort((a,b)=>new Date(a.date)-new Date(b.date));
   const labels = data.map(e=>e.date);
 
-  const line = (canvasId, label, key, color) => {
-    charts[canvasId] = new Chart($(canvasId).getContext('2d'), {
-      type:'line',
-      data:{ labels, datasets:[{ label, data:data.map(e=>Number(e[key])||0), borderColor:color, backgroundColor:color+'33', fill:true, tension:.3 }] },
-      options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#cfd6df' } } }, scales:{ x:{ ticks:{ color:'#9ba3ae'}}, y:{ ticks:{ color:'#9ba3ae'}, min:0, max:5, suggestedMax:5 } } }
-    });
-  };
+  // 1) MULTI-LINE: Mood, Libido, Energy, Sleep
+  charts.lineAll = new Chart($('lineAll').getContext('2d'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Mood',   data:data.map(e=>+e.mood||0),   borderColor:getComputedStyle(document.documentElement).getPropertyValue('--c-mood').trim(),   backgroundColor:'rgba(76,201,240,.2)', fill:true, tension:.3},
+        {label:'Libido', data:data.map(e=>+e.libido||0), borderColor:getComputedStyle(document.documentElement).getPropertyValue('--c-libido').trim(), backgroundColor:'rgba(249,65,68,.2)',  fill:true, tension:.3},
+        {label:'Energy', data:data.map(e=>+e.energy||0), borderColor:getComputedStyle(document.documentElement).getPropertyValue('--c-energy').trim(), backgroundColor:'rgba(249,199,79,.2)', fill:true, tension:.3},
+        {label:'Sleep',  data:data.map(e=>+e.sleep||0),  borderColor:getComputedStyle(document.documentElement).getPropertyValue('--c-sleep').trim(),  backgroundColor:'rgba(157,78,221,.2)', fill:true, tension:.3},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'#cfd6df' } } },
+      scales:{
+        x:{ ticks:{ color:'#9ba3ae' } },
+        y:{ ticks:{ color:'#9ba3ae' }, min:0, max:5, suggestedMax:5 }
+      }
+    }
+  });
 
-  const bar = (canvasId, label, objCounts, color) => {
-    const lbls = Object.keys(objCounts);
-    const vals = Object.values(objCounts);
-    charts[canvasId] = new Chart($(canvasId).getContext('2d'), {
-      type:'bar',
-      data:{ labels:lbls, datasets:[{ label, data:vals, backgroundColor:color }] },
-      options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#9ba3ae'}}, y:{ ticks:{ color:'#9ba3ae'}, beginAtZero:true } } }
-    });
-  };
+  // 2) ONE BIG BAR: everything else (counts)
+  // Build bars and colors
+  const pumps = {'½':0,'1':0,'1.5':0,'2':0};
+  data.forEach(e=>{ if(e.pumps==='0.5') pumps['½']++; else if(pumps[e.pumps]!=null) pumps[e.pumps]++; });
+  const appetite = {'1':0,'2':0,'3':0,'4':0,'5':0}; data.forEach(e=>{ const v=String(e.appetite||''); if(appetite[v]!=null) appetite[v]++; });
+  const skin = {'1':0,'2':0,'3':0,'4':0,'5':0};     data.forEach(e=>{ const v=String(e.skin||''); if(skin[v]!=null) skin[v]++; });
+  const period = {None:0,Spotting:0,Light:0,Medium:0,Heavy:0};
+  data.forEach(e=>{
+    const v=String(e.period||'');
+    if(v==='none') period.None++;
+    else if(v==='spotting') period.Spotting++;
+    else if(v==='light') period.Light++;
+    else if(v==='medium') period.Medium++;
+    else if(v==='heavy') period.Heavy++;
+  });
+  const bottomGrowth = {Swelling: data.filter(e=>e.bgSwelling).length, Sensitivity: data.filter(e=>e.bgSensitivity).length};
+  const voice = {Cracking:0,'Deeper tone':0,'No change':0};
+  data.forEach(e=>{ if(e.voiceCracking) voice['Cracking']++; if(e.voiceDeeper) voice['Deeper tone']++; if(e.voiceNoChange) voice['No change']++; });
 
-  // Line charts (distinct colors)
-  line('lineMood','Mood','mood','#4cc9f0');
-  line('lineLibido','Libido','libido','#f94144');
-  line('lineEnergy','Energy','energy','#f9c74f');
-  line('lineSleep','Sleep','sleep','#9d4edd');
+  // Flatten into one bar series (labels + values + colors)
+  const barLabels = [
+    'Pumps ½','Pumps 1','Pumps 1.5','Pumps 2',
+    'Appetite 1','Appetite 2','Appetite 3','Appetite 4','Appetite 5',
+    'Skin 1','Skin 2','Skin 3','Skin 4','Skin 5',
+    'Period None','Period Spotting','Period Light','Period Medium','Period Heavy',
+    'Bottom Growth Swelling','Bottom Growth Sensitivity',
+    'Voice Cracking','Voice Deeper tone','Voice No change'
+  ];
+  const barValues = [
+    pumps['½'],pumps['1'],pumps['1.5'],pumps['2'],
+    appetite['1'],appetite['2'],appetite['3'],appetite['4'],appetite['5'],
+    skin['1'],skin['2'],skin['3'],skin['4'],skin['5'],
+    period.None,period.Spotting,period.Light,period.Medium,period.Heavy,
+    bottomGrowth.Swelling,bottomGrowth.Sensitivity,
+    voice['Cracking'],voice['Deeper tone'],voice['No change']
+  ];
+  const c = getComputedStyle(document.documentElement);
+  const color = name => c.getPropertyValue(name).trim();
+  const barColors = [
+    /* pumps */ color('--c-pumps'),color('--c-pumps'),color('--c-pumps'),color('--c-pumps'),
+    /* appetite */ color('--c-app'),color('--c-app'),color('--c-app'),color('--c-app'),color('--c-app'),
+    /* skin */ color('--c-skin'),color('--c-skin'),color('--c-skin'),color('--c-skin'),color('--c-skin'),
+    /* period */ color('--c-period'),color('--c-period'),color('--c-period'),color('--c-period'),color('--c-period'),
+    /* bottom growth */ color('--c-bg'),color('--c-bg'),
+    /* voice */ color('--c-voice'),color('--c-voice'),color('--c-voice')
+  ];
 
-  // Bar chart helpers
-  const tally = (arr) => arr.reduce((m,v)=>{ m[String(v??'')] = (m[String(v??'')]||0)+1; return m; }, {});
-
-  // Pumps (½ → '0.5' in data)
-  const pumpsLabels = ['0.5','1','1.5','2']; const pumpsCount = { '0.5':0, '1':0, '1.5':0, '2':0 };
-  data.forEach(e=>{ if(pumpsCount[e.pumps]!==undefined) pumpsCount[e.pumps]++; });
-  bar('barPumps','Pumps Taken', {'½':pumpsCount['0.5'],'1':pumpsCount['1'],'1.5':pumpsCount['1.5'],'2':pumpsCount['2']}, '#90be6d');
-
-  // Appetite (1–5)
-  bar('barAppetite','Appetite', tally(data.map(e=>e.appetite||'')), '#f8961e');
-
-  // Skin (1–5)
-  bar('barSkin','Skin', tally(data.map(e=>e.skin||'')), '#f72585');
-
-  // Period categories
-  bar('barPeriod','Period', tally(data.map(e=>e.period||'')), '#d62828');
-
-  // Bottom growth counts
-  bar('barBottomGrowth','Bottom Growth', {
-    'Swelling': data.filter(e=>e.bgSwelling).length,
-    'Sensitivity': data.filter(e=>e.bgSensitivity).length
-  }, '#06d6a0');
-
-  // Voice counts
-  bar('barVoice','Voice', {
-    'Cracking': data.filter(e=>e.voiceCracking).length,
-    'Deeper tone': data.filter(e=>e.voiceDeeper).length,
-    'No change': data.filter(e=>e.voiceNoChange).length
-  }, '#7209b7');
+  charts.barAll = new Chart($('barAll').getContext('2d'), {
+    type:'bar',
+    data:{ labels:barLabels, datasets:[{ label:'Counts', data:barValues, backgroundColor:barColors }] },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'#cfd6df' } } },
+      scales:{ x:{ ticks:{ color:'#9ba3ae', maxRotation:45, minRotation:45 } }, y:{ ticks:{ color:'#9ba3ae' }, beginAtZero:true } }
+    }
+  });
 }
 </script>
 </body>
 </html>
-
-
-
-
-
-
