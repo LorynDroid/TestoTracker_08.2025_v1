@@ -1,102 +1,204 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>T-Gel Daily Tracker</title>
-  <style>
-    :root { --bg:#0b0c10; --card:#15171c; --ink:#e9edf1; --muted:#9ba3ae; --accent:#6ee7ff; --accent2:#a78bfa; }
-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto; background:var(--bg); color:var(--ink);} 
-    .wrap{max-width:1000px;margin:32px auto;padding:0 16px}
-    h1{font-size:28px;margin:0 0 6px} .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
-    .tabs{display:flex;gap:10px;margin:16px 0 20px} .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
-    .tabs button.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
-    .card{background:var(--card); border:1px solid #2a2f38; border-radius:16px; padding:18px; box-shadow:0 6px 20px rgba(0,0,0,.25)}
-    .grid{display:grid; gap:14px; grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media (max-width:760px){ .grid{grid-template-columns:1fr} }
-    label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
-    input[type="date"], select, textarea{width:100%; background:#0f1116; color:var(--ink); border:1px solid #2a2f38; border-radius:12px; padding:10px 12px}
-    textarea{min-height:80px}
-    .row{display:flex; gap:10px; align-items:center}
-    .btn{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#001018; border:0; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer}
-    .btn.outline{background:none; border:1px solid #2a2f38; color:var(--ink)}
-    .small{font-size:12px;color:var(--muted)}
-    .flag{display:flex; align-items:center; justify-content:space-between; border:1px solid #2a2f38; border-radius:12px; padding:10px 12px}
-    .switch{appearance:none;width:40px;height:24px;background:#2a2f38;border-radius:999px;position:relative;outline:none;cursor:pointer}
-    .switch:checked{background:var(--accent)}
-    .switch::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; background:#0b0c10; border-radius:50%; transition:.18s}
-    .switch:checked::after{left:19px}
-    .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-    .chartCard{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:12px}
-    .hstack{display:flex;gap:10px;align-items:center}
-    .tag{background:#1c1f26;border:1px solid #2a2f38;border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
-  </style>
-  <!-- React + Recharts via CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T-Gel Daily Tracker</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+  :root{--bg:#0b0c10;--card:#15171c;--ink:#e9edf1;--muted:#9ba3ae;--accent:#6ee7ff;--accent2:#a78bfa}
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto; background:var(--bg); color:var(--ink)}
+  .wrap{max-width:980px;margin:32px auto;padding:0 16px}
+  h1{margin:0 0 8px;font-size:28px} .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .tabs{display:flex;gap:10px;margin:16px 0 20px}
+  .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
+  .tabs button.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
+  .card{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="date"],select,textarea{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
+  textarea{min-height:80px}
+  .row{display:flex;gap:10px;align-items:center}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#001018;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
+  .btn.outline{background:none;border:1px solid #2a2f38;color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px}
+</style>
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <h1>T-Gel Daily Tracker</h1>
-    <div class="sub">AFAB · age 43 · 1 pump/day gel · data saved locally (export CSV for your doctor)</div>
-    <div id="app"></div>
+<div class="wrap">
+  <h1>T-Gel Daily Tracker</h1>
+  <div class="sub">Simple daily check-ins saved locally on your device. Export CSV for your doctor.</div>
+
+  <div class="tabs">
+    <button id="tabDaily" class="active">Daily Entry</button>
+    <button id="tabOverview">Overview</button>
   </div>
 
-  <script type="text/babel">
-    const { useEffect, useState } = React;
-    const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
-    const STORAGE_KEY = 'tgel-tracker-entries-v1';
-    const todayISO = () => { const d = new Date(); const off = d.getTimezoneOffset(); return new Date(d.getTime() - off*60000).toISOString().slice(0,10); };
-    const useLocalEntries = () => { const [entries, setEntries] = useState([]); useEffect(()=>{ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) setEntries(JSON.parse(raw)); }catch{} },[]); useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }catch{} },[entries]); return [entries, setEntries]; };
-    const emptyEntry = (dateStr=todayISO()) => ({ date: dateStr, mood: 3, libido: 3, appetite: '', energy: 3, sleep: 3, bottomGrowth: false, skin: '', voice: false, period: '', notes: '' });
-    const Slider = ({value,onChange}) => (<input type="range" min="1" max="5" step="1" value={value} onChange={e=>onChange(Number(e.target.value))} />);
+  <!-- Daily -->
+  <div id="viewDaily" class="card">
+    <div class="grid">
+      <div><label>Date</label><input id="date" type="date"></div>
+      <div><label>Mood (1–5)</label><input id="mood" type="range" min="1" max="5" step="1"><div id="moodVal"></div></div>
+      <div><label>Libido (1–5)</label><input id="libido" type="range" min="1" max="5" step="1"><div id="libidoVal"></div></div>
+      <div><label>Energy (1–5)</label><input id="energy" type="range" min="1" max="5" step="1"><div id="energyVal"></div></div>
+      <div><label>Sleep (1–5)</label><input id="sleep" type="range" min="1" max="5" step="1"><div id="sleepVal"></div></div>
+      <div><label>Appetite</label>
+        <select id="appetite"><option value=""></option><option>Low</option><option>Normal</option><option>High</option></select>
+      </div>
+      <div style="grid-column:1/-1"><label>Notes</label><textarea id="notes" placeholder="Anything else today…"></textarea></div>
+    </div>
+    <div class="controls">
+      <button id="save" class="btn">Save Entry</button>
+      <button id="reset" class="btn outline">Reset</button>
+      <button id="exportCsv" class="btn outline">Export CSV</button>
+      <label class="btn outline" style="cursor:pointer">Import CSV
+        <input id="importCsv" type="file" accept=".csv,text/csv" style="display:none">
+      </label>
+    </div>
+  </div>
 
-    function App(){
-      const [tab, setTab] = useState('daily');
-      const [entries, setEntries] = useLocalEntries();
-      const [entry, setEntry] = useState(emptyEntry());
-      const saveEntry = () => { setEntries(prev => { const others = prev.filter(p=>p.date!==entry.date); return [...others, entry].sort((a,b)=>a.date<b.date?-1:1); }); alert('Saved!'); };
-      const chartData = entries.map(e=>({ date: e.date, mood:e.mood, libido:e.libido, energy:e.energy, sleep:e.sleep }));
+  <!-- Overview -->
+  <div id="viewOverview" class="card" style="display:none">
+    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
+      <strong>Trends</strong>
+      <select id="range">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+    </div>
+    <canvas id="lineChart" height="260"></canvas>
+  </div>
+</div>
 
-      return (
-        <div>
-          <div class="tabs">
-            <button class={tab==='daily'?'active':''} onClick={()=>setTab('daily')}>Daily Entry</button>
-            <button class={tab==='overview'?'active':''} onClick={()=>setTab('overview')}>Overview</button>
-          </div>
+<script>
+const KEY = 'tgel-tracker-entries-v1';
+const $ = id => document.getElementById(id);
+const todayISO = () => {const d=new Date();const off=d.getTimezoneOffset();return new Date(d.getTime()-off*60000).toISOString().slice(0,10);};
 
-          {tab==='daily' && (
-            <div class="card grid">
-              <div><label>Date</label><input type="date" value={entry.date} onChange={e=>setEntry({...entry, date:e.target.value})} /></div>
-              <div><label>Mood</label><Slider value={entry.mood} onChange={n=>setEntry({...entry, mood:n})} /></div>
-              <div><label>Libido</label><Slider value={entry.libido} onChange={n=>setEntry({...entry, libido:n})} /></div>
-              <div><label>Energy</label><Slider value={entry.energy} onChange={n=>setEntry({...entry, energy:n})} /></div>
-              <div><label>Sleep</label><Slider value={entry.sleep} onChange={n=>setEntry({...entry, sleep:n})} /></div>
-              <div><label>Appetite</label><input value={entry.appetite} onChange={e=>setEntry({...entry, appetite:e.target.value})} /></div>
-              <div><label>Notes</label><textarea value={entry.notes} onChange={e=>setEntry({...entry, notes:e.target.value})}></textarea></div>
-              <div class="row"><button class="btn" onClick={saveEntry}>Save</button></div>
-            </div>
-          )}
+function getEntries(){ try{ return JSON.parse(localStorage.getItem(KEY) || '[]'); }catch{ return []; } }
+function setEntries(e){ localStorage.setItem(KEY, JSON.stringify(e)); }
+function upVal(input, label){ label.textContent = input.value; input.addEventListener('input',()=>label.textContent=input.value); }
 
-          {tab==='overview' && (
-            <div class="card">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" /><YAxis /><Tooltip />
-                  <Line type="monotone" dataKey="mood" stroke="#6ee7ff" />
-                  <Line type="monotone" dataKey="libido" stroke="#a78bfa" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      );
+function saveEntry(){
+  const e = {
+    date: $('date').value,
+    mood: Number($('mood').value),
+    libido: Number($('libido').value),
+    appetite: $('appetite').value,
+    energy: Number($('energy').value),
+    sleep: Number($('sleep').value),
+    notes: $('notes').value.trim()
+  };
+  let list = getEntries().filter(x => x.date !== e.date);
+  list.push(e);
+  list.sort((a,b)=>a.date<b.date?-1:1);
+  setEntries(list);
+  alert('Saved!');
+}
+
+function toCSV(rows){
+  const head = ['date','mood','libido','appetite','energy','sleep','notes'];
+  const esc = s => {
+    if (s==null) return '';
+    s = String(s);
+    return /[",\\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  return [head.join(',')].concat(rows.map(r=>head.map(h=>esc(r[h])).join(','))).join('\\n');
+}
+
+function fromCSV(text){
+  const lines = text.trim().split(/\\r?\\n/);
+  if(lines.length<=1) return [];
+  const header = lines[0].split(',');
+  const idx = Object.fromEntries(header.map((h,i)=>[h.trim(),i]));
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const raw=lines[i]; const cols=[]; let cur=''; let inQ=false;
+    for(let j=0;j<raw.length;j++){
+      const ch=raw[j];
+      if(ch=='"'){ if(inQ && raw[j+1]=='"'){cur+='"'; j++;} else inQ=!inQ; }
+      else if(ch==',' && !inQ){ cols.push(cur); cur=''; }
+      else cur+=ch;
     }
+    cols.push(cur);
+    const get = k => cols[idx[k]] ?? '';
+    rows.push({
+      date:get('date'),
+      mood:Number(get('mood')||3),
+      libido:Number(get('libido')||3),
+      appetite:get('appetite')||'',
+      energy:Number(get('energy')||3),
+      sleep:Number(get('sleep')||3),
+      notes:get('notes')||''
+    });
+  }
+  return rows;
+}
 
-    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
-  </script>
+function filterByDays(days){
+  const entries = getEntries();
+  const d = new Date(); d.setDate(d.getDate()-days+1);
+  const off = d.getTimezoneOffset();
+  const cut = new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+  return entries.filter(e=>e.date >= cut);
+}
+
+// UI init
+$('date').value = todayISO();
+['mood','libido','energy','sleep'].forEach(id => upVal($(id), $(id+'Val')));
+$('save').onclick = saveEntry;
+$('reset').onclick = () => { $('date').value=todayISO(); ['mood','libido','energy','sleep'].forEach(id=>$(id).value=3); $('appetite').value=''; $('notes').value=''; };
+$('exportCsv').onclick = () => {
+  const blob = new Blob([toCSV(getEntries())], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = 'tgel-tracker.csv'; a.click(); URL.revokeObjectURL(url);
+};
+$('importCsv').onchange = e => {
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = () => { setEntries(fromCSV(String(r.result||''))); alert('Imported!'); draw(); }; r.readAsText(f);
+};
+
+// Tabs
+$('tabDaily').onclick = () => { $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active'); $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; };
+$('tabOverview').onclick = () => { $('tabOverview').classList.add('active'); $('tabDaily').classList.remove('active'); $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; draw(); };
+
+// Chart
+let chart;
+function draw(){
+  const days = Number($('range').value);
+  const data = filterByDays(days);
+  const labels = data.map(d=>d.date);
+  const mood = data.map(d=>d.mood);
+  const libido = data.map(d=>d.libido);
+  const energy = data.map(d=>d.energy);
+  const sleep = data.map(d=>d.sleep);
+  const ctx = $('lineChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Mood', data:mood},
+        {label:'Libido', data:libido},
+        {label:'Energy', data:energy},
+        {label:'Sleep', data:sleep},
+      ]
+    },
+    options:{
+      responsive:true,
+      scales:{ y:{ min:1, max:5, ticks:{ stepSize:1 } } },
+      plugins:{ legend:{ labels:{ color:'#e9edf1' } } }
+    }
+  });
+}
+$('range').onchange = draw;
+</script>
 </body>
 </html>
+
