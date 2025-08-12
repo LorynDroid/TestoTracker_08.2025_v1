@@ -274,13 +274,13 @@ function renderCharts(){
   const data=getEntries().sort((a,b)=>new Date(a.date)-new Date(b.date));
   const labels=data.map(e=>e.date);
 
-  const makeLine=(ctx,label,key)=>new Chart(ctx,{type:'line',data:{labels,datasets:[{label,data:data.map(e=>Number(e[key])||0),borderColor:'cyan'}]},options:{responsive:true}});
+  const makeLine=(ctx,label,key,color)=>new Chart(ctx,{type:'line',data:{labels,datasets:[{label,data:data.map(e=>Number(e[key])||0),borderColor:color,backgroundColor:color+'33',fill:true}]},options:{responsive:true}});
   const makeBarCount=(ctx,label,values)=>new Chart(ctx,{type:'bar',data:{labels:Object.keys(values),datasets:[{label,data:Object.values(values),backgroundColor:'orange'}]},options:{responsive:true}});
 
-  makeLine($('lineMood'),'Mood','mood');
-  makeLine($('lineLibido'),'Libido','libido');
-  makeLine($('lineEnergy'),'Energy','energy');
-  makeLine($('lineSleep'),'Sleep','sleep');
+  makeLine($('lineMood'),'Mood','mood','#4cc9f0');
+  makeLine($('lineLibido'),'Libido','libido','#f94144');
+  makeLine($('lineEnergy'),'Energy','energy','#f9c74f');
+  makeLine($('lineSleep'),'Sleep','sleep','#9d4edd');
 
   const pumpsCount={};
   data.forEach(e=>{pumpsCount[e.pumps]=(pumpsCount[e.pumps]||0)+1;});
@@ -304,6 +304,7 @@ function renderCharts(){
 </script>
 </body>
 </html>
+
 
 
 
