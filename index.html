@@ -7,9 +7,11 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <style>
   :root{--bg:#0b0c10;--card:#15171c;--ink:#e9edf1;--muted:#9ba3ae;--accent:#6ee7ff;--accent2:#a78bfa}
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
-  h1{margin:0 0 8px;font-size:28px} .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:980px;margin:32px auto;padding:0 16px}
+  h1{margin:0 0 8px;font-size:28px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
   .tabs{display:flex;gap:10px;margin:16px 0 20px}
   .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
   .tabs button.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
@@ -27,10 +29,10 @@
   .field{background:#101219;border:1px solid #2a2f38;border-radius:12px;padding:12px}
   .rangeWrap{display:flex;gap:12px;align-items:center}
   .rangeWrap output{min-width:2ch;text-align:center}
-  @media (max-width:860px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
+  @media (max-width:760px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
   canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px}
   .charts{display:grid;gap:16px}
-  @media (min-width:980px){.charts{grid-template-columns:1fr 1fr}}
+  @media (min-width:860px){.charts{grid-template-columns:1fr 1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -44,386 +46,265 @@
     <button id="tabOverview">Overview</button>
   </div>
 
-  <!-- Daily -->
+  <!-- DAILY ENTRY -->
   <div id="viewDaily" class="card">
     <div class="formGrid">
       <!-- LEFT COLUMN -->
       <div class="leftCol">
+        <!-- Pumps Taken -->
+        <div class="field">
+          <label for="pumps">Pumps of T-Gel taken today</label>
+          <select id="pumps">
+            <option value="">-- Select --</option>
+            <option value="0.5">½</option>
+            <option value="1">1</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+          </select>
+        </div>
+        <!-- Date -->
         <div class="field">
           <label for="date">Date</label>
           <input id="date" type="date">
         </div>
-
+        <!-- Mood -->
         <div class="field">
           <label for="mood">Mood (1–5)</label>
           <div class="rangeWrap">
             <input id="mood" type="range" min="1" max="5" step="1"><output id="moodVal"></output>
           </div>
         </div>
-
+        <!-- Libido -->
         <div class="field">
           <label for="libido">Libido (1–5)</label>
           <div class="rangeWrap">
             <input id="libido" type="range" min="1" max="5" step="1"><output id="libidoVal"></output>
           </div>
         </div>
-
+        <!-- Appetite -->
         <div class="field">
-          <label for="appetite">Appetite</label>
-          <select id="appetite">
-            <option value=""></option>
-            <option>Low</option>
-            <option>Normal</option>
-            <option>High</option>
-          </select>
+          <label for="appetite">Appetite (1–5)</label>
+          <div class="rangeWrap">
+            <input id="appetite" type="range" min="1" max="5" step="1"><output id="appetiteVal"></output>
+          </div>
         </div>
-
+        <!-- Energy -->
         <div class="field">
           <label for="energy">Energy (1–5)</label>
           <div class="rangeWrap">
             <input id="energy" type="range" min="1" max="5" step="1"><output id="energyVal"></output>
           </div>
         </div>
-
+        <!-- Sleep -->
         <div class="field">
-          <label for="sleep">Sleep (1–5)</label>
+          <label for="sleep">Sleep Quality (1–5)</label>
           <div class="rangeWrap">
             <input id="sleep" type="range" min="1" max="5" step="1"><output id="sleepVal"></output>
           </div>
         </div>
-
+        <!-- Bottom Growth -->
         <div class="field">
-          <label>Bottom growth</label>
-          <div class="row">
-            <label><input id="swelling" type="checkbox"> Swelling</label>
-            <label><input id="sensitivity" type="checkbox"> Sensitivity</label>
+          <label>Bottom Growth</label>
+          <div class="controls">
+            <label><input type="checkbox" id="bgSwelling"> Swelling</label>
+            <label><input type="checkbox" id="bgSensitivity"> Sensitivity</label>
           </div>
-          <div style="margin-top:8px">
-            <input id="bottomGrowthNotes" class="small-notes" type="text" placeholder="Notes (optional)">
+          <textarea id="bgNotes" class="small-notes" placeholder="Notes on bottom growth"></textarea>
+        </div>
+        <!-- Skin -->
+        <div class="field">
+          <label for="skin">Skin Changes (1–5)</label>
+          <div class="rangeWrap">
+            <input id="skin" type="range" min="1" max="5" step="1"><output id="skinVal"></output>
           </div>
         </div>
-
-        <div class="field">
-          <label for="skin">Skin</label>
-          <select id="skin">
-            <option value=""></option>
-            <option>None</option>
-            <option>Oil</option>
-            <option>Acne</option>
-            <option>Both</option>
-          </select>
-        </div>
-
+        <!-- Voice -->
         <div class="field">
           <label>Voice</label>
-          <div class="row">
-            <label><input id="voiceCracking" type="checkbox"> Cracking</label>
-            <label><input id="voiceDeeper" type="checkbox"> Deeper tone</label>
-            <label><input id="voiceNone" type="checkbox"> No change</label>
+          <div class="controls">
+            <label><input type="checkbox" id="voiceCracking"> Cracking</label>
+            <label><input type="checkbox" id="voiceDeeper"> Deeper tone</label>
+            <label><input type="checkbox" id="voiceNoChange"> No change</label>
           </div>
-          <div style="margin-top:8px">
-            <input id="voiceNotes" class="small-notes" type="text" placeholder="Notes (optional)">
-          </div>
+          <textarea id="voiceNotes" class="small-notes" placeholder="Notes on voice"></textarea>
         </div>
-
+        <!-- Period -->
         <div class="field">
-          <label for="period">Period status</label>
+          <label for="period">Period?</label>
           <select id="period">
-            <option value=""></option>
-            <option>Yes</option>
-            <option>No</option>
-            <option>Stopped</option>
-            <option>N/A</option>
+            <option value="">-- Select --</option>
+            <option value="none">None</option>
+            <option value="spotting">Spotting</option>
+            <option value="light">Light</option>
+            <option value="medium">Medium</option>
+            <option value="heavy">Heavy</option>
           </select>
         </div>
       </div>
 
       <!-- RIGHT COLUMN -->
       <div>
-        <label for="notes">Notes</label>
-        <textarea id="notes" placeholder="Anything else today…"></textarea>
+        <div class="field">
+          <label for="notes">General Notes</label>
+          <textarea id="notes"></textarea>
+        </div>
       </div>
     </div>
-
     <div class="controls">
-      <button id="save" class="btn">Save Entry</button>
-      <button id="reset" class="btn outline">Reset</button>
-      <button id="exportCsv" class="btn outline">Export CSV</button>
-      <label class="btn outline" style="cursor:pointer">Import CSV
-        <input id="importCsv" type="file" accept=".csv,text/csv" style="display:none">
+      <button class="btn" id="saveBtn">Save Entry</button>
+      <button class="btn outline" id="exportCsv">Export CSV</button>
+      <input type="file" id="importCsv" style="display:none">
+      <button class="btn outline" id="importBtn">Import CSV</button>
+      <label class="row" style="font-size:13px;color:var(--muted)">
+        <input id="autoBackup" type="checkbox" style="margin-right:8px">
+        Auto-backup CSV on Save
       </label>
     </div>
   </div>
 
-  <!-- Overview -->
+  <!-- OVERVIEW -->
   <div id="viewOverview" class="card" style="display:none">
-    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
-      <strong>Trends</strong>
-      <select id="range">
-        <option value="7">Last 7 days</option>
-        <option value="30" selected>Last 30 days</option>
-        <option value="90">Last 90 days</option>
-      </select>
-    </div>
-
     <div class="charts">
-      <div><canvas id="lineChart" height="260"></canvas></div>
-      <div><canvas id="bgChart" height="260"></canvas></div>
-      <div><canvas id="voiceChart" height="260"></canvas></div>
-      <div><canvas id="appetiteChart" height="260"></canvas></div>
-      <div><canvas id="skinChart" height="260"></canvas></div>
-      <div><canvas id="periodChart" height="260"></canvas></div>
+      <canvas id="lineMood"></canvas>
+      <canvas id="lineLibido"></canvas>
+      <canvas id="lineEnergy"></canvas>
+      <canvas id="lineSleep"></canvas>
+      <canvas id="barPumps"></canvas>
+      <canvas id="barAppetite"></canvas>
+      <canvas id="barSkin"></canvas>
+      <canvas id="barPeriod"></canvas>
+      <canvas id="barBottomGrowth"></canvas>
+      <canvas id="barVoice"></canvas>
     </div>
   </div>
 </div>
 
 <script>
-const KEY = 'tgel-tracker-entries-v1';
-const $ = id => document.getElementById(id);
-const todayISO = () => { const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); };
+const $=id=>document.getElementById(id);
+const KEY='tgel-tracker-entries-v1';
+const BACKUP_KEY='tgel-tracker-auto-backup';
 
-function getEntries(){ try{ return JSON.parse(localStorage.getItem(KEY) || '[]'); }catch{ return []; } }
-function setEntries(e){ localStorage.setItem(KEY, JSON.stringify(e)); }
-function bindRange(id, out){ const el=$(id), o=$(out); const set=()=>o.textContent=el.value; set(); el.addEventListener('input', set); }
+function getEntries(){return JSON.parse(localStorage.getItem(KEY)||'[]');}
+function setEntries(list){localStorage.setItem(KEY,JSON.stringify(list));}
 
-// Backward-compatible defaults
-function normalizeRow(r){
-  return {
-    date: r.date || todayISO(),
-    mood: Number(r.mood ?? 3),
-    libido: Number(r.libido ?? 3),
-    appetite: r.appetite || '',
-    energy: Number(r.energy ?? 3),
-    sleep: Number(r.sleep ?? 3),
-    // bottom growth details
-    swelling: Boolean(r.swelling ?? false),
-    sensitivity: Boolean(r.sensitivity ?? false),
-    bottomGrowthNotes: r.bottomGrowthNotes || '',
-    // skin
-    skin: r.skin || '',
-    // voice details
-    voiceCracking: Boolean(r.voiceCracking ?? false),
-    voiceDeeper: Boolean(r.voiceDeeper ?? false),
-    voiceNone: Boolean(r.voiceNone ?? false),
-    voiceNotes: r.voiceNotes || '',
-    // period
-    period: r.period || '',
-    // general notes
-    notes: r.notes || ''
-  };
+function toCSV(rows){
+  const headers=Object.keys(rows[0]||{});
+  return [headers.join(','),...rows.map(r=>headers.map(h=>JSON.stringify(r[h]||'')).join(','))].join('\\n');
+}
+
+function downloadCSV(rows, filename){
+  const blob=new Blob([toCSV(rows)],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
 }
 
 function saveEntry(){
-  const e = normalizeRow({
+  const entry={
     date: $('date').value,
+    pumps: $('pumps').value,
     mood: $('mood').value,
     libido: $('libido').value,
     appetite: $('appetite').value,
     energy: $('energy').value,
     sleep: $('sleep').value,
-    swelling: $('swelling').checked,
-    sensitivity: $('sensitivity').checked,
-    bottomGrowthNotes: $('bottomGrowthNotes').value.trim(),
+    bgSwelling: $('bgSwelling').checked,
+    bgSensitivity: $('bgSensitivity').checked,
+    bgNotes: $('bgNotes').value,
     skin: $('skin').value,
     voiceCracking: $('voiceCracking').checked,
     voiceDeeper: $('voiceDeeper').checked,
-    voiceNone: $('voiceNone').checked,
-    voiceNotes: $('voiceNotes').value.trim(),
+    voiceNoChange: $('voiceNoChange').checked,
+    voiceNotes: $('voiceNotes').value,
     period: $('period').value,
-    notes: $('notes').value.trim()
-  });
-  let list = getEntries().filter(x => x.date !== e.date);
-  list.push(e);
-  list.sort((a,b)=>a.date<b.date?-1:1);
-  setEntries(list);
-  alert('Saved!');
-}
-
-function toCSV(rows){
-  const head = [
-    'date','mood','libido','appetite','energy','sleep',
-    'swelling','sensitivity','bottomGrowthNotes',
-    'skin',
-    'voiceCracking','voiceDeeper','voiceNone','voiceNotes',
-    'period','notes'
-  ];
-  const esc = s => {
-    if (s==null) return '';
-    s = String(s);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    notes: $('notes').value
   };
-  return [head.join(',')].concat(rows.map(r=>head.map(h=>esc(r[h])).join(','))).join('\n');
-}
-
-function fromCSV(text){
-  const lines = text.trim().split(/\r?\n/);
-  if(lines.length<=1) return [];
-  const header = lines[0].split(',');
-  const idx = Object.fromEntries(header.map((h,i)=>[h.trim(),i]));
-  const rows = [];
-  for(let i=1;i<lines.length;i++){
-    const raw=lines[i]; const cols=[]; let cur=''; let inQ=false;
-    for(let j=0;j<raw.length;j++){
-      const ch=raw[j];
-      if(ch=='"'){ if(inQ && raw[j+1]=='"'){cur+='"'; j++;} else inQ=!inQ; }
-      else if(ch==',' && !inQ){ cols.push(cur); cur=''; }
-      else cur+=ch;
-    }
-    cols.push(cur);
-    const get = k => cols[idx[k]] ?? '';
-    rows.push(normalizeRow({
-      date:get('date'),
-      mood:get('mood'),
-      libido:get('libido'),
-      appetite:get('appetite'),
-      energy:get('energy'),
-      sleep:get('sleep'),
-      swelling:(get('swelling')||'').toLowerCase().startsWith('t') || (get('swelling')||'').toLowerCase().startsWith('y'),
-      sensitivity:(get('sensitivity')||'').toLowerCase().startsWith('t') || (get('sensitivity')||'').toLowerCase().startsWith('y'),
-      bottomGrowthNotes:get('bottomGrowthNotes'),
-      skin:get('skin'),
-      voiceCracking:(get('voiceCracking')||'').toLowerCase().startsWith('t') || (get('voiceCracking')||'').toLowerCase().startsWith('y'),
-      voiceDeeper:(get('voiceDeeper')||'').toLowerCase().startsWith('t') || (get('voiceDeeper')||'').toLowerCase().startsWith('y'),
-      voiceNone:(get('voiceNone')||'').toLowerCase().startsWith('t') || (get('voiceNone')||'').toLowerCase().startsWith('y'),
-      voiceNotes:get('voiceNotes'),
-      period:get('period'),
-      notes:get('notes')
-    }));
+  let list=getEntries();
+  list=list.filter(e=>e.date!==entry.date);
+  list.push(entry);
+  setEntries(list);
+  if ($('autoBackup').checked){
+    const ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    downloadCSV(list,`tgel-tracker-backup-${ts}.csv`);
   }
-  return rows;
+  alert('Saved! Great work, you sexy thing!');
 }
 
-function filterByDays(days){
-  const entries = getEntries();
-  const d = new Date(); d.setDate(d.getDate()-days+1);
-  const off = d.getTimezoneOffset();
-  const cut = new Date(d.getTime()-off*60000).toISOString().slice(0,10);
-  return entries.filter(e=>e.date >= cut).sort((a,b)=>a.date<b.date?-1:1);
-}
+$('saveBtn').onclick=saveEntry;
+$('exportCsv').onclick=()=>downloadCSV(getEntries(),'tgel-tracker.csv');
+$('importBtn').onclick=()=>$('importCsv').click();
+$('importCsv').onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const text=reader.result.trim();
+    const [header,...lines]=text.split('\\n');
+    const keys=header.split(',');
+    const data=lines.map(line=>{
+      const values=line.split(',').map(v=>JSON.parse(v));
+      return Object.fromEntries(keys.map((k,i)=>[k,values[i]]));
+    });
+    setEntries(data);
+    alert('Import complete!');
+  };
+  reader.readAsText(file);
+};
 
-// UI init
-$('date').value = todayISO();
-['mood','libido','energy','sleep'].forEach(id => {
-  const el=$(id), out=$(id+'Val');
-  const set=()=>out.textContent=el.value;
-  set(); el.addEventListener('input', set);
+// tab switching
+$('tabDaily').onclick=()=>{ $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active');};
+$('tabOverview').onclick=()=>{ $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; $('tabDaily').classList.remove('active'); $('tabOverview').classList.add('active'); renderCharts();};
+
+// init range outputs
+['mood','libido','appetite','energy','sleep','skin'].forEach(id=>{
+  const inp=$(id),out=$(id+'Val');
+  inp.oninput=()=>out.textContent=inp.value;
+  inp.oninput();
 });
-$('save').onclick = saveEntry;
-$('reset').onclick = () => {
-  $('date').value=todayISO();
-  ['mood','libido','energy','sleep'].forEach(id=>$(id).value=3);
-  ['appetite','skin','period'].forEach(id=>$(id).value='');
-  ['swelling','sensitivity','voiceCracking','voiceDeeper','voiceNone'].forEach(id=>$(id).checked=false);
-  ['bottomGrowthNotes','voiceNotes','notes'].forEach(id=>$(id).value='');
-};
-$('exportCsv').onclick = () => {
-  const blob = new Blob([toCSV(getEntries())], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href = url; a.download = 'tgel-tracker.csv'; a.click(); URL.revokeObjectURL(url);
-};
-$('importCsv').onchange = e => {
-  const f = e.target.files && e.target.files[0]; if(!f) return;
-  const r = new FileReader(); r.onload = () => { setEntries(fromCSV(String(r.result||''))); alert('Imported!'); drawAll(); }; r.readAsText(f);
-};
 
-// Tabs
-$('tabDaily').onclick = () => { $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active'); $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; };
-$('tabOverview').onclick = () => { $('tabOverview').classList.add('active'); $('tabDaily').classList.remove('active'); $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; drawAll(); };
-$('range').onchange = () => drawAll();
+// restore auto-backup setting
+try{
+  const pref=localStorage.getItem(BACKUP_KEY);
+  if(pref!==null) $('autoBackup').checked=pref==='1';
+}catch{}
+$('autoBackup').onchange=()=>{localStorage.setItem(BACKUP_KEY,$('autoBackup').checked?'1':'0');};
 
-// Charts
-let charts = {};
-function destroyCharts(){
-  for(const k in charts){ if(charts[k]) charts[k].destroy(); }
-  charts = {};
-}
-function countBy(values, keys){ const map={}; keys.forEach(k=>map[k]=0); values.forEach(v=>{ if(map[v]!==undefined) map[v]++; }); return keys.map(k=>map[k]); }
+function renderCharts(){
+  const data=getEntries().sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const labels=data.map(e=>e.date);
 
-function drawAll(){
-  destroyCharts();
-  const days = Number($('range').value);
-  const data = filterByDays(days);
-  const labels = data.map(d=>d.date);
+  const makeLine=(ctx,label,key)=>new Chart(ctx,{type:'line',data:{labels,datasets:[{label,data:data.map(e=>Number(e[key])||0),borderColor:'cyan'}]},options:{responsive:true}});
+  const makeBarCount=(ctx,label,values)=>new Chart(ctx,{type:'bar',data:{labels:Object.keys(values),datasets:[{label,data:Object.values(values),backgroundColor:'orange'}]},options:{responsive:true}});
 
-  const ctxLine = $('lineChart').getContext('2d');
-  charts.line = new Chart(ctxLine, {
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {label:'Mood', data:data.map(d=>d.mood)},
-        {label:'Libido', data:data.map(d=>d.libido)},
-        {label:'Energy', data:data.map(d=>d.energy)},
-        {label:'Sleep', data:data.map(d=>d.sleep)}
-      ]
-    },
-    options:{
-      responsive:true,
-      scales:{ y:{ min:1, max:5, ticks:{ stepSize:1 } } },
-      plugins:{ legend:{ labels:{ color:'#e9edf1' } } }
-    }
-  });
+  makeLine($('lineMood'),'Mood','mood');
+  makeLine($('lineLibido'),'Libido','libido');
+  makeLine($('lineEnergy'),'Energy','energy');
+  makeLine($('lineSleep'),'Sleep','sleep');
 
-  // Bottom growth (Swelling/Sensitivity) counts
-  const bgCtx = $('bgChart').getContext('2d');
-  const bgLabels = ['Swelling','Sensitivity'];
-  const bgCounts = [
-    data.filter(d=>d.swelling).length,
-    data.filter(d=>d.sensitivity).length
-  ];
-  charts.bg = new Chart(bgCtx, {
-    type:'bar',
-    data:{ labels:bgLabels, datasets:[{label:'Bottom growth (counts)', data:bgCounts}] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
+  const pumpsCount={};
+  data.forEach(e=>{pumpsCount[e.pumps]=(pumpsCount[e.pumps]||0)+1;});
+  makeBarCount($('barPumps'),'Pumps Taken',pumpsCount);
 
-  // Voice counts
-  const voiceCtx = $('voiceChart').getContext('2d');
-  const voiceLabels = ['Cracking','Deeper tone','No change'];
-  const voiceCounts = [
-    data.filter(d=>d.voiceCracking).length,
-    data.filter(d=>d.voiceDeeper).length,
-    data.filter(d=>d.voiceNone).length
-  ];
-  charts.voice = new Chart(voiceCtx, {
-    type:'bar',
-    data:{ labels:voiceLabels, datasets:[{label:'Voice (counts)', data:voiceCounts}] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
+  const appetiteCount={};data.forEach(e=>{appetiteCount[e.appetite]=(appetiteCount[e.appetite]||0)+1;});
+  makeBarCount($('barAppetite'),'Appetite',appetiteCount);
 
-  // Appetite counts
-  const apCtx = $('appetiteChart').getContext('2d');
-  const apLabels = ['Low','Normal','High'];
-  const apCounts = countBy(data.map(d=>d.appetite||''), apLabels);
-  charts.appetite = new Chart(apCtx, {
-    type:'bar',
-    data:{ labels:apLabels, datasets:[{label:'Appetite (counts)', data:apCounts}] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
+  const skinCount={};data.forEach(e=>{skinCount[e.skin]=(skinCount[e.skin]||0)+1;});
+  makeBarCount($('barSkin'),'Skin',skinCount);
 
-  // Skin counts
-  const skinCtx = $('skinChart').getContext('2d');
-  const skinLabels = ['None','Oil','Acne','Both'];
-  const skinCounts = countBy(data.map(d=>d.skin||''), skinLabels);
-  charts.skin = new Chart(skinCtx, {
-    type:'bar',
-    data:{ labels:skinLabels, datasets:[{label:'Skin (counts)', data:skinCounts}] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
+  const periodCount={};data.forEach(e=>{periodCount[e.period]=(periodCount[e.period]||0)+1;});
+  makeBarCount($('barPeriod'),'Period',periodCount);
 
-  // Period counts
-  const periodCtx = $('periodChart').getContext('2d');
-  const periodLabels = ['Yes','No','Stopped','N/A'];
-  const periodCounts = countBy(data.map(d=>d.period||''), periodLabels);
-  charts.period = new Chart(periodCtx, {
-    type:'bar',
-    data:{ labels:periodLabels, datasets:[{label:'Period (counts)', data:periodCounts}] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
+  const bgCount={Swelling:0,Sensitivity:0};data.forEach(e=>{if(e.bgSwelling)bgCount.Swelling++;if(e.bgSensitivity)bgCount.Sensitivity++;});
+  makeBarCount($('barBottomGrowth'),'Bottom Growth',bgCount);
+
+  const voiceCount={Cracking:0,'Deeper tone':0,'No change':0};data.forEach(e=>{if(e.voiceCracking)voiceCount.Cracking++;if(e.voiceDeeper)voiceCount['Deeper tone']++;if(e.voiceNoChange)voiceCount['No change']++;});
+  makeBarCount($('barVoice'),'Voice',voiceCount);
 }
 </script>
 </body>
 </html>
+
 
 
 
