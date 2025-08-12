@@ -8,16 +8,17 @@
 <style>
   :root{--bg:#0b0c10;--card:#15171c;--ink:#e9edf1;--muted:#9ba3ae;--accent:#6ee7ff;--accent2:#a78bfa}
   *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:980px;margin:32px auto;padding:0 16px}
+  .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
   h1{margin:0 0 8px;font-size:28px} .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
   .tabs{display:flex;gap:10px;margin:16px 0 20px}
   .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
   .tabs button.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
   .card{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type="date"],select,textarea{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
+  input[type="date"],select,textarea,input[type="text"]{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
   textarea{min-height:280px}
-  .row{display:flex;gap:10px;align-items:center}
+  .small-notes{min-height:60px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001018;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
   .btn.outline{background:none;border:1px solid #2a2f38;color:var(--ink)}
   .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
@@ -26,10 +27,11 @@
   .field{background:#101219;border:1px solid #2a2f38;border-radius:12px;padding:12px}
   .rangeWrap{display:flex;gap:12px;align-items:center}
   .rangeWrap output{min-width:2ch;text-align:center}
-  @media (max-width:760px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
+  @media (max-width:860px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
   canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px}
+  .charts{display:grid;gap:16px}
+  @media (min-width:980px){.charts{grid-template-columns:1fr 1fr}}
 </style>
-<!-- Chart.js for graphs -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -91,10 +93,13 @@
         </div>
 
         <div class="field">
-          <label>Bottom growth today</label>
+          <label>Bottom growth</label>
           <div class="row">
-            <input id="bottomGrowth" type="checkbox">
-            <span style="font-size:12px;color:var(--muted)">Any new swelling or sensitivity</span>
+            <label><input id="swelling" type="checkbox"> Swelling</label>
+            <label><input id="sensitivity" type="checkbox"> Sensitivity</label>
+          </div>
+          <div style="margin-top:8px">
+            <input id="bottomGrowthNotes" class="small-notes" type="text" placeholder="Notes (optional)">
           </div>
         </div>
 
@@ -110,10 +115,14 @@
         </div>
 
         <div class="field">
-          <label>Voice change today</label>
+          <label>Voice</label>
           <div class="row">
-            <input id="voice" type="checkbox">
-            <span style="font-size:12px;color:var(--muted)">Cracking or deeper tone</span>
+            <label><input id="voiceCracking" type="checkbox"> Cracking</label>
+            <label><input id="voiceDeeper" type="checkbox"> Deeper tone</label>
+            <label><input id="voiceNone" type="checkbox"> No change</label>
+          </div>
+          <div style="margin-top:8px">
+            <input id="voiceNotes" class="small-notes" type="text" placeholder="Notes (optional)">
           </div>
         </div>
 
@@ -156,7 +165,15 @@
         <option value="90">Last 90 days</option>
       </select>
     </div>
-    <canvas id="lineChart" height="260"></canvas>
+
+    <div class="charts">
+      <div><canvas id="lineChart" height="260"></canvas></div>
+      <div><canvas id="bgChart" height="260"></canvas></div>
+      <div><canvas id="voiceChart" height="260"></canvas></div>
+      <div><canvas id="appetiteChart" height="260"></canvas></div>
+      <div><canvas id="skinChart" height="260"></canvas></div>
+      <div><canvas id="periodChart" height="260"></canvas></div>
+    </div>
   </div>
 </div>
 
@@ -178,10 +195,20 @@ function normalizeRow(r){
     appetite: r.appetite || '',
     energy: Number(r.energy ?? 3),
     sleep: Number(r.sleep ?? 3),
-    bottomGrowth: Boolean(r.bottomGrowth ?? false),
+    // bottom growth details
+    swelling: Boolean(r.swelling ?? false),
+    sensitivity: Boolean(r.sensitivity ?? false),
+    bottomGrowthNotes: r.bottomGrowthNotes || '',
+    // skin
     skin: r.skin || '',
-    voice: Boolean(r.voice ?? false),
+    // voice details
+    voiceCracking: Boolean(r.voiceCracking ?? false),
+    voiceDeeper: Boolean(r.voiceDeeper ?? false),
+    voiceNone: Boolean(r.voiceNone ?? false),
+    voiceNotes: r.voiceNotes || '',
+    // period
     period: r.period || '',
+    // general notes
     notes: r.notes || ''
   };
 }
@@ -194,9 +221,14 @@ function saveEntry(){
     appetite: $('appetite').value,
     energy: $('energy').value,
     sleep: $('sleep').value,
-    bottomGrowth: $('bottomGrowth').checked,
+    swelling: $('swelling').checked,
+    sensitivity: $('sensitivity').checked,
+    bottomGrowthNotes: $('bottomGrowthNotes').value.trim(),
     skin: $('skin').value,
-    voice: $('voice').checked,
+    voiceCracking: $('voiceCracking').checked,
+    voiceDeeper: $('voiceDeeper').checked,
+    voiceNone: $('voiceNone').checked,
+    voiceNotes: $('voiceNotes').value.trim(),
     period: $('period').value,
     notes: $('notes').value.trim()
   });
@@ -208,7 +240,13 @@ function saveEntry(){
 }
 
 function toCSV(rows){
-  const head = ['date','mood','libido','appetite','energy','sleep','bottomGrowth','skin','voice','period','notes'];
+  const head = [
+    'date','mood','libido','appetite','energy','sleep',
+    'swelling','sensitivity','bottomGrowthNotes',
+    'skin',
+    'voiceCracking','voiceDeeper','voiceNone','voiceNotes',
+    'period','notes'
+  ];
   const esc = s => {
     if (s==null) return '';
     s = String(s);
@@ -240,9 +278,14 @@ function fromCSV(text){
       appetite:get('appetite'),
       energy:get('energy'),
       sleep:get('sleep'),
-      bottomGrowth:(get('bottomGrowth')||'').toLowerCase().startsWith('y') || get('bottomGrowth')==='true',
+      swelling:(get('swelling')||'').toLowerCase().startsWith('t') || (get('swelling')||'').toLowerCase().startsWith('y'),
+      sensitivity:(get('sensitivity')||'').toLowerCase().startsWith('t') || (get('sensitivity')||'').toLowerCase().startsWith('y'),
+      bottomGrowthNotes:get('bottomGrowthNotes'),
       skin:get('skin'),
-      voice:(get('voice')||'').toLowerCase().startsWith('y') || get('voice')==='true',
+      voiceCracking:(get('voiceCracking')||'').toLowerCase().startsWith('t') || (get('voiceCracking')||'').toLowerCase().startsWith('y'),
+      voiceDeeper:(get('voiceDeeper')||'').toLowerCase().startsWith('t') || (get('voiceDeeper')||'').toLowerCase().startsWith('y'),
+      voiceNone:(get('voiceNone')||'').toLowerCase().startsWith('t') || (get('voiceNone')||'').toLowerCase().startsWith('y'),
+      voiceNotes:get('voiceNotes'),
       period:get('period'),
       notes:get('notes')
     }));
@@ -260,14 +303,18 @@ function filterByDays(days){
 
 // UI init
 $('date').value = todayISO();
-['mood','libido','energy','sleep'].forEach(id => bindRange(id, id+'Val'));
+['mood','libido','energy','sleep'].forEach(id => {
+  const el=$(id), out=$(id+'Val');
+  const set=()=>out.textContent=el.value;
+  set(); el.addEventListener('input', set);
+});
 $('save').onclick = saveEntry;
 $('reset').onclick = () => {
   $('date').value=todayISO();
   ['mood','libido','energy','sleep'].forEach(id=>$(id).value=3);
   ['appetite','skin','period'].forEach(id=>$(id).value='');
-  ['bottomGrowth','voice'].forEach(id=>$(id).checked=false);
-  $('notes').value='';
+  ['swelling','sensitivity','voiceCracking','voiceDeeper','voiceNone'].forEach(id=>$(id).checked=false);
+  ['bottomGrowthNotes','voiceNotes','notes'].forEach(id=>$(id).value='');
 };
 $('exportCsv').onclick = () => {
   const blob = new Blob([toCSV(getEntries())], {type:'text/csv;charset=utf-8;'});
@@ -276,34 +323,38 @@ $('exportCsv').onclick = () => {
 };
 $('importCsv').onchange = e => {
   const f = e.target.files && e.target.files[0]; if(!f) return;
-  const r = new FileReader(); r.onload = () => { setEntries(fromCSV(String(r.result||''))); alert('Imported!'); draw(); }; r.readAsText(f);
+  const r = new FileReader(); r.onload = () => { setEntries(fromCSV(String(r.result||''))); alert('Imported!'); drawAll(); }; r.readAsText(f);
 };
 
 // Tabs
 $('tabDaily').onclick = () => { $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active'); $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; };
-$('tabOverview').onclick = () => { $('tabOverview').classList.add('active'); $('tabDaily').classList.remove('active'); $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; draw(); };
+$('tabOverview').onclick = () => { $('tabOverview').classList.add('active'); $('tabDaily').classList.remove('active'); $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; drawAll(); };
+$('range').onchange = () => drawAll();
 
-// Chart
-let chart;
-function draw(){
+// Charts
+let charts = {};
+function destroyCharts(){
+  for(const k in charts){ if(charts[k]) charts[k].destroy(); }
+  charts = {};
+}
+function countBy(values, keys){ const map={}; keys.forEach(k=>map[k]=0); values.forEach(v=>{ if(map[v]!==undefined) map[v]++; }); return keys.map(k=>map[k]); }
+
+function drawAll(){
+  destroyCharts();
   const days = Number($('range').value);
   const data = filterByDays(days);
   const labels = data.map(d=>d.date);
-  const mood = data.map(d=>d.mood);
-  const libido = data.map(d=>d.libido);
-  const energy = data.map(d=>d.energy);
-  const sleep = data.map(d=>d.sleep);
-  const ctx = document.getElementById('lineChart').getContext('2d');
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
+
+  const ctxLine = $('lineChart').getContext('2d');
+  charts.line = new Chart(ctxLine, {
     type:'line',
     data:{
       labels,
       datasets:[
-        {label:'Mood', data:mood},
-        {label:'Libido', data:libido},
-        {label:'Energy', data:energy},
-        {label:'Sleep', data:sleep},
+        {label:'Mood', data:data.map(d=>d.mood)},
+        {label:'Libido', data:data.map(d=>d.libido)},
+        {label:'Energy', data:data.map(d=>d.energy)},
+        {label:'Sleep', data:data.map(d=>d.sleep)}
       ]
     },
     options:{
@@ -312,10 +363,67 @@ function draw(){
       plugins:{ legend:{ labels:{ color:'#e9edf1' } } }
     }
   });
+
+  // Bottom growth (Swelling/Sensitivity) counts
+  const bgCtx = $('bgChart').getContext('2d');
+  const bgLabels = ['Swelling','Sensitivity'];
+  const bgCounts = [
+    data.filter(d=>d.swelling).length,
+    data.filter(d=>d.sensitivity).length
+  ];
+  charts.bg = new Chart(bgCtx, {
+    type:'bar',
+    data:{ labels:bgLabels, datasets:[{label:'Bottom growth (counts)', data:bgCounts}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Voice counts
+  const voiceCtx = $('voiceChart').getContext('2d');
+  const voiceLabels = ['Cracking','Deeper tone','No change'];
+  const voiceCounts = [
+    data.filter(d=>d.voiceCracking).length,
+    data.filter(d=>d.voiceDeeper).length,
+    data.filter(d=>d.voiceNone).length
+  ];
+  charts.voice = new Chart(voiceCtx, {
+    type:'bar',
+    data:{ labels:voiceLabels, datasets:[{label:'Voice (counts)', data:voiceCounts}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Appetite counts
+  const apCtx = $('appetiteChart').getContext('2d');
+  const apLabels = ['Low','Normal','High'];
+  const apCounts = countBy(data.map(d=>d.appetite||''), apLabels);
+  charts.appetite = new Chart(apCtx, {
+    type:'bar',
+    data:{ labels:apLabels, datasets:[{label:'Appetite (counts)', data:apCounts}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Skin counts
+  const skinCtx = $('skinChart').getContext('2d');
+  const skinLabels = ['None','Oil','Acne','Both'];
+  const skinCounts = countBy(data.map(d=>d.skin||''), skinLabels);
+  charts.skin = new Chart(skinCtx, {
+    type:'bar',
+    data:{ labels:skinLabels, datasets:[{label:'Skin (counts)', data:skinCounts}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Period counts
+  const periodCtx = $('periodChart').getContext('2d');
+  const periodLabels = ['Yes','No','Stopped','N/A'];
+  const periodCounts = countBy(data.map(d=>d.period||''), periodLabels);
+  charts.period = new Chart(periodCtx, {
+    type:'bar',
+    data:{ labels:periodLabels, datasets:[{label:'Period (counts)', data:periodCounts}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
 }
-document.getElementById('range').onchange = draw;
 </script>
 </body>
 </html>
+
 
 
