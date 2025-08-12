@@ -12,9 +12,18 @@
   .wrap{max-width:980px;margin:32px auto;padding:0 16px}
   h1{margin:0 0 8px;font-size:28px}
   .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+
   .tabs{display:flex;gap:10px;margin:16px 0 20px}
-  .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
-  .tabs button.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
+  .tabs button{
+    background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);
+    padding:10px 14px;border-radius:12px;cursor:pointer;
+    transition:background .18s ease, color .18s ease, box-shadow .18s ease, border-color .18s ease
+  }
+  .tabs button.active{
+    background:var(--accent); color:#001018; border-color:var(--accent);
+    box-shadow:0 0 18px rgba(110,231,255,.45);
+  }
+
   .card{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
   input[type="date"],select,textarea,input[type="text"]{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
@@ -30,7 +39,9 @@
   .rangeWrap{display:flex;gap:12px;align-items:center}
   .rangeWrap output{min-width:2ch;text-align:center}
   @media (max-width:760px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
-  canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px}
+
+  /* Chart canvases: uniform accent-blue glow */
+  canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px;box-shadow:0 0 12px rgba(110,231,255,.4);}
   .charts{display:grid;gap:16px}
   @media (min-width:860px){.charts{grid-template-columns:1fr 1fr}}
 </style>
@@ -109,7 +120,7 @@
             <label><input type="checkbox" id="bgSwelling"> Swelling</label>
             <label><input type="checkbox" id="bgSensitivity"> Sensitivity</label>
           </div>
-          <textarea id="bgNotes" class="small-notes" placeholder="Notes on bottom growth"></textarea>
+          <input id="bgNotes" class="small-notes" type="text" placeholder="Notes on bottom growth">
         </div>
         <!-- Skin -->
         <div class="field">
@@ -126,7 +137,7 @@
             <label><input type="checkbox" id="voiceDeeper"> Deeper tone</label>
             <label><input type="checkbox" id="voiceNoChange"> No change</label>
           </div>
-          <textarea id="voiceNotes" class="small-notes" placeholder="Notes on voice"></textarea>
+          <input id="voiceNotes" class="small-notes" type="text" placeholder="Notes on voice">
         </div>
         <!-- Period -->
         <div class="field">
@@ -180,23 +191,23 @@
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-const KEY='tgel-tracker-entries-v1';
-const BACKUP_KEY='tgel-tracker-auto-backup';
+const $ = id => document.getElementById(id);
+const KEY = 'tgel-tracker-entries-v1';
+const BACKUP_KEY = 'tgel-tracker-auto-backup';
 
-function getEntries(){return JSON.parse(localStorage.getItem(KEY)||'[]');}
-function setEntries(list){localStorage.setItem(KEY,JSON.stringify(list));}
+function todayISO(){ const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); }
+
+function getEntries(){ try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch{return []} }
+function setEntries(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
 
 function toCSV(rows){
-  const headers=Object.keys(rows[0]||{});
-  return [headers.join(','),...rows.map(r=>headers.map(h=>JSON.stringify(r[h]||'')).join(','))].join('\\n');
+  const headers = Object.keys(rows[0]||{});
+  return [headers.join(','), ...rows.map(r=>headers.map(h=>JSON.stringify(r[h]??'')).join(','))].join('\n');
 }
-
 function downloadCSV(rows, filename){
   const blob=new Blob([toCSV(rows)],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=filename;a.click();
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -220,10 +231,11 @@ function saveEntry(){
     period: $('period').value,
     notes: $('notes').value
   };
-  let list=getEntries();
-  list=list.filter(e=>e.date!==entry.date);
+  let list = getEntries().filter(e=>e.date!==entry.date);
   list.push(entry);
+  list.sort((a,b)=>a.date<b.date?-1:1);
   setEntries(list);
+
   if ($('autoBackup').checked){
     const ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
     downloadCSV(list,`tgel-tracker-backup-${ts}.csv`);
@@ -231,79 +243,117 @@ function saveEntry(){
   alert('Saved! Great work, you sexy thing!');
 }
 
-$('saveBtn').onclick=saveEntry;
-$('exportCsv').onclick=()=>downloadCSV(getEntries(),'tgel-tracker.csv');
-$('importBtn').onclick=()=>$('importCsv').click();
-$('importCsv').onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const text=reader.result.trim();
-    const [header,...lines]=text.split('\\n');
-    const keys=header.split(',');
-    const data=lines.map(line=>{
-      const values=line.split(',').map(v=>JSON.parse(v));
-      return Object.fromEntries(keys.map((k,i)=>[k,values[i]]));
+$('saveBtn').onclick = saveEntry;
+$('exportCsv').onclick = () => downloadCSV(getEntries(),'tgel-tracker.csv');
+$('importBtn').onclick = () => $('importCsv').click();
+$('importCsv').onchange = e => {
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const text=String(r.result||'').trim();
+    if(!text){ alert('Empty file'); return; }
+    const [header, ...lines] = text.split(/\r?\n/);
+    const keys = header.split(',');
+    const rows = lines.filter(Boolean).map(line=>{
+      const vals=line.split(',').map(v=>{ try{return JSON.parse(v);}catch{return v.replace(/^"|"$/g,'')} });
+      return Object.fromEntries(keys.map((k,i)=>[k, vals[i]]));
     });
-    setEntries(data);
+    setEntries(rows);
     alert('Import complete!');
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 };
 
-// tab switching
-$('tabDaily').onclick=()=>{ $('viewDaily').style.display='block'; $('viewOverview').style.display='none'; $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active');};
-$('tabOverview').onclick=()=>{ $('viewDaily').style.display='none'; $('viewOverview').style.display='block'; $('tabDaily').classList.remove('active'); $('tabOverview').classList.add('active'); renderCharts();};
+// tabs with active styling
+function showDaily(){
+  $('viewDaily').style.display='block'; $('viewOverview').style.display='none';
+  $('tabDaily').classList.add('active'); $('tabOverview').classList.remove('active');
+}
+function showOverview(){
+  $('viewDaily').style.display='none'; $('viewOverview').style.display='block';
+  $('tabDaily').classList.remove('active'); $('tabOverview').classList.add('active');
+  renderCharts();
+}
+$('tabDaily').onclick = showDaily;
+$('tabOverview').onclick = showOverview;
 
-// init range outputs
-['mood','libido','appetite','energy','sleep','skin'].forEach(id=>{
-  const inp=$(id),out=$(id+'Val');
-  inp.oninput=()=>out.textContent=inp.value;
-  inp.oninput();
+// init date + range outputs + auto-backup toggle
+window.addEventListener('DOMContentLoaded', ()=>{
+  $('date').value = todayISO();
+  ['mood','libido','appetite','energy','sleep','skin'].forEach(id=>{
+    const el=$(id), out=$(id+'Val'); const set=()=>out.textContent=el.value; set(); el.addEventListener('input', set);
+  });
+  try{ const pref=localStorage.getItem(BACKUP_KEY); if(pref!==null) $('autoBackup').checked = pref==='1'; }catch{}
+  $('autoBackup').addEventListener('change', ()=>localStorage.setItem(BACKUP_KEY, $('autoBackup').checked?'1':'0'));
 });
 
-// restore auto-backup setting
-try{
-  const pref=localStorage.getItem(BACKUP_KEY);
-  if(pref!==null) $('autoBackup').checked=pref==='1';
-}catch{}
-$('autoBackup').onchange=()=>{localStorage.setItem(BACKUP_KEY,$('autoBackup').checked?'1':'0');};
+// ----- Charts -----
+let charts = {};
+function destroyCharts(){ for(const k in charts){ try{ charts[k].destroy(); }catch{} } charts={}; }
 
 function renderCharts(){
-  const data=getEntries().sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const labels=data.map(e=>e.date);
+  destroyCharts();
+  const data = getEntries().sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const labels = data.map(e=>e.date);
 
-  const makeLine=(ctx,label,key,color)=>new Chart(ctx,{type:'line',data:{labels,datasets:[{label,data:data.map(e=>Number(e[key])||0),borderColor:color,backgroundColor:color+'33',fill:true}]},options:{responsive:true}});
-  const makeBarCount=(ctx,label,values)=>new Chart(ctx,{type:'bar',data:{labels:Object.keys(values),datasets:[{label,data:Object.values(values),backgroundColor:'orange'}]},options:{responsive:true}});
+  const line = (canvasId, label, key, color) => {
+    charts[canvasId] = new Chart($(canvasId).getContext('2d'), {
+      type:'line',
+      data:{ labels, datasets:[{ label, data:data.map(e=>Number(e[key])||0), borderColor:color, backgroundColor:color+'33', fill:true, tension:.3 }] },
+      options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#cfd6df' } } }, scales:{ x:{ ticks:{ color:'#9ba3ae'}}, y:{ ticks:{ color:'#9ba3ae'}, min:0, max:5, suggestedMax:5 } } }
+    });
+  };
 
-  makeLine($('lineMood'),'Mood','mood','#4cc9f0');
-  makeLine($('lineLibido'),'Libido','libido','#f94144');
-  makeLine($('lineEnergy'),'Energy','energy','#f9c74f');
-  makeLine($('lineSleep'),'Sleep','sleep','#9d4edd');
+  const bar = (canvasId, label, objCounts, color) => {
+    const lbls = Object.keys(objCounts);
+    const vals = Object.values(objCounts);
+    charts[canvasId] = new Chart($(canvasId).getContext('2d'), {
+      type:'bar',
+      data:{ labels:lbls, datasets:[{ label, data:vals, backgroundColor:color }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#9ba3ae'}}, y:{ ticks:{ color:'#9ba3ae'}, beginAtZero:true } } }
+    });
+  };
 
-  const pumpsCount={};
-  data.forEach(e=>{pumpsCount[e.pumps]=(pumpsCount[e.pumps]||0)+1;});
-  makeBarCount($('barPumps'),'Pumps Taken',pumpsCount);
+  // Line charts (distinct colors)
+  line('lineMood','Mood','mood','#4cc9f0');
+  line('lineLibido','Libido','libido','#f94144');
+  line('lineEnergy','Energy','energy','#f9c74f');
+  line('lineSleep','Sleep','sleep','#9d4edd');
 
-  const appetiteCount={};data.forEach(e=>{appetiteCount[e.appetite]=(appetiteCount[e.appetite]||0)+1;});
-  makeBarCount($('barAppetite'),'Appetite',appetiteCount);
+  // Bar chart helpers
+  const tally = (arr) => arr.reduce((m,v)=>{ m[String(v??'')] = (m[String(v??'')]||0)+1; return m; }, {});
 
-  const skinCount={};data.forEach(e=>{skinCount[e.skin]=(skinCount[e.skin]||0)+1;});
-  makeBarCount($('barSkin'),'Skin',skinCount);
+  // Pumps (½ → '0.5' in data)
+  const pumpsLabels = ['0.5','1','1.5','2']; const pumpsCount = { '0.5':0, '1':0, '1.5':0, '2':0 };
+  data.forEach(e=>{ if(pumpsCount[e.pumps]!==undefined) pumpsCount[e.pumps]++; });
+  bar('barPumps','Pumps Taken', {'½':pumpsCount['0.5'],'1':pumpsCount['1'],'1.5':pumpsCount['1.5'],'2':pumpsCount['2']}, '#90be6d');
 
-  const periodCount={};data.forEach(e=>{periodCount[e.period]=(periodCount[e.period]||0)+1;});
-  makeBarCount($('barPeriod'),'Period',periodCount);
+  // Appetite (1–5)
+  bar('barAppetite','Appetite', tally(data.map(e=>e.appetite||'')), '#f8961e');
 
-  const bgCount={Swelling:0,Sensitivity:0};data.forEach(e=>{if(e.bgSwelling)bgCount.Swelling++;if(e.bgSensitivity)bgCount.Sensitivity++;});
-  makeBarCount($('barBottomGrowth'),'Bottom Growth',bgCount);
+  // Skin (1–5)
+  bar('barSkin','Skin', tally(data.map(e=>e.skin||'')), '#f72585');
 
-  const voiceCount={Cracking:0,'Deeper tone':0,'No change':0};data.forEach(e=>{if(e.voiceCracking)voiceCount.Cracking++;if(e.voiceDeeper)voiceCount['Deeper tone']++;if(e.voiceNoChange)voiceCount['No change']++;});
-  makeBarCount($('barVoice'),'Voice',voiceCount);
+  // Period categories
+  bar('barPeriod','Period', tally(data.map(e=>e.period||'')), '#d62828');
+
+  // Bottom growth counts
+  bar('barBottomGrowth','Bottom Growth', {
+    'Swelling': data.filter(e=>e.bgSwelling).length,
+    'Sensitivity': data.filter(e=>e.bgSensitivity).length
+  }, '#06d6a0');
+
+  // Voice counts
+  bar('barVoice','Voice', {
+    'Cracking': data.filter(e=>e.voiceCracking).length,
+    'Deeper tone': data.filter(e=>e.voiceDeeper).length,
+    'No change': data.filter(e=>e.voiceNoChange).length
+  }, '#7209b7');
 }
 </script>
 </body>
 </html>
+
 
 
 
