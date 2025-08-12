@@ -1,28 +1,32 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>T-Gel Daily Tracker</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kato’s T-Gel Daily Tracker</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <style>
   :root{--bg:#0b0c10;--card:#15171c;--ink:#e9edf1;--muted:#9ba3ae;--accent:#6ee7ff;--accent2:#a78bfa}
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto; background:var(--bg); color:var(--ink)}
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
   .wrap{max-width:980px;margin:32px auto;padding:0 16px}
   h1{margin:0 0 8px;font-size:28px} .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
   .tabs{display:flex;gap:10px;margin:16px 0 20px}
   .tabs button{background:#1c1f26;border:1px solid #2a2f38;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
-  .tabs button.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
+  .tabs button.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,231,255,.15) inset}
   .card{background:var(--card);border:1px solid #2a2f38;border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-  .grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
-  @media (max-width:760px){.grid{grid-template-columns:1fr}}
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
   input[type="date"],select,textarea{width:100%;background:#0f1116;color:var(--ink);border:1px solid #2a2f38;border-radius:12px;padding:10px 12px}
-  textarea{min-height:80px}
+  textarea{min-height:280px}
   .row{display:flex;gap:10px;align-items:center}
-  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#001018;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001018;border:0;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
   .btn.outline{background:none;border:1px solid #2a2f38;color:var(--ink)}
   .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .leftCol{display:flex;flex-direction:column;gap:14px}
+  .field{background:#101219;border:1px solid #2a2f38;border-radius:12px;padding:12px}
+  .rangeWrap{display:flex;gap:12px;align-items:center}
+  .rangeWrap output{min-width:2ch;text-align:center}
+  @media (max-width:760px){.formGrid{grid-template-columns:1fr} textarea{min-height:160px}}
   canvas{background:#0f1116;border:1px solid #2a2f38;border-radius:12px}
 </style>
 <!-- Chart.js for graphs -->
@@ -30,8 +34,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>T-Gel Daily Tracker</h1>
-  <div class="sub">Simple daily check-ins saved locally on your device. Export CSV for your doctor.</div>
+  <h1>Kato’s T-Gel Daily Tracker</h1>
+  <div class="sub">made with love by Ren</div>
 
   <div class="tabs">
     <button id="tabDaily" class="active">Daily Entry</button>
@@ -40,17 +44,98 @@
 
   <!-- Daily -->
   <div id="viewDaily" class="card">
-    <div class="grid">
-      <div><label>Date</label><input id="date" type="date"></div>
-      <div><label>Mood (1–5)</label><input id="mood" type="range" min="1" max="5" step="1"><div id="moodVal"></div></div>
-      <div><label>Libido (1–5)</label><input id="libido" type="range" min="1" max="5" step="1"><div id="libidoVal"></div></div>
-      <div><label>Energy (1–5)</label><input id="energy" type="range" min="1" max="5" step="1"><div id="energyVal"></div></div>
-      <div><label>Sleep (1–5)</label><input id="sleep" type="range" min="1" max="5" step="1"><div id="sleepVal"></div></div>
-      <div><label>Appetite</label>
-        <select id="appetite"><option value=""></option><option>Low</option><option>Normal</option><option>High</option></select>
+    <div class="formGrid">
+      <!-- LEFT COLUMN -->
+      <div class="leftCol">
+        <div class="field">
+          <label for="date">Date</label>
+          <input id="date" type="date">
+        </div>
+
+        <div class="field">
+          <label for="mood">Mood (1–5)</label>
+          <div class="rangeWrap">
+            <input id="mood" type="range" min="1" max="5" step="1"><output id="moodVal"></output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="libido">Libido (1–5)</label>
+          <div class="rangeWrap">
+            <input id="libido" type="range" min="1" max="5" step="1"><output id="libidoVal"></output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="appetite">Appetite</label>
+          <select id="appetite">
+            <option value=""></option>
+            <option>Low</option>
+            <option>Normal</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="energy">Energy (1–5)</label>
+          <div class="rangeWrap">
+            <input id="energy" type="range" min="1" max="5" step="1"><output id="energyVal"></output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sleep">Sleep (1–5)</label>
+          <div class="rangeWrap">
+            <input id="sleep" type="range" min="1" max="5" step="1"><output id="sleepVal"></output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Bottom growth today</label>
+          <div class="row">
+            <input id="bottomGrowth" type="checkbox">
+            <span style="font-size:12px;color:var(--muted)">Any new swelling or sensitivity</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="skin">Skin</label>
+          <select id="skin">
+            <option value=""></option>
+            <option>None</option>
+            <option>Oil</option>
+            <option>Acne</option>
+            <option>Both</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Voice change today</label>
+          <div class="row">
+            <input id="voice" type="checkbox">
+            <span style="font-size:12px;color:var(--muted)">Cracking or deeper tone</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="period">Period status</label>
+          <select id="period">
+            <option value=""></option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Stopped</option>
+            <option>N/A</option>
+          </select>
+        </div>
       </div>
-      <div style="grid-column:1/-1"><label>Notes</label><textarea id="notes" placeholder="Anything else today…"></textarea></div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Anything else today…"></textarea>
+      </div>
     </div>
+
     <div class="controls">
       <button id="save" class="btn">Save Entry</button>
       <button id="reset" class="btn outline">Reset</button>
@@ -78,22 +163,43 @@
 <script>
 const KEY = 'tgel-tracker-entries-v1';
 const $ = id => document.getElementById(id);
-const todayISO = () => {const d=new Date();const off=d.getTimezoneOffset();return new Date(d.getTime()-off*60000).toISOString().slice(0,10);};
+const todayISO = () => { const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); };
 
 function getEntries(){ try{ return JSON.parse(localStorage.getItem(KEY) || '[]'); }catch{ return []; } }
 function setEntries(e){ localStorage.setItem(KEY, JSON.stringify(e)); }
-function upVal(input, label){ label.textContent = input.value; input.addEventListener('input',()=>label.textContent=input.value); }
+function bindRange(id, out){ const el=$(id), o=$(out); const set=()=>o.textContent=el.value; set(); el.addEventListener('input', set); }
+
+// Backward-compatible defaults
+function normalizeRow(r){
+  return {
+    date: r.date || todayISO(),
+    mood: Number(r.mood ?? 3),
+    libido: Number(r.libido ?? 3),
+    appetite: r.appetite || '',
+    energy: Number(r.energy ?? 3),
+    sleep: Number(r.sleep ?? 3),
+    bottomGrowth: Boolean(r.bottomGrowth ?? false),
+    skin: r.skin || '',
+    voice: Boolean(r.voice ?? false),
+    period: r.period || '',
+    notes: r.notes || ''
+  };
+}
 
 function saveEntry(){
-  const e = {
+  const e = normalizeRow({
     date: $('date').value,
-    mood: Number($('mood').value),
-    libido: Number($('libido').value),
+    mood: $('mood').value,
+    libido: $('libido').value,
     appetite: $('appetite').value,
-    energy: Number($('energy').value),
-    sleep: Number($('sleep').value),
+    energy: $('energy').value,
+    sleep: $('sleep').value,
+    bottomGrowth: $('bottomGrowth').checked,
+    skin: $('skin').value,
+    voice: $('voice').checked,
+    period: $('period').value,
     notes: $('notes').value.trim()
-  };
+  });
   let list = getEntries().filter(x => x.date !== e.date);
   list.push(e);
   list.sort((a,b)=>a.date<b.date?-1:1);
@@ -102,17 +208,17 @@ function saveEntry(){
 }
 
 function toCSV(rows){
-  const head = ['date','mood','libido','appetite','energy','sleep','notes'];
+  const head = ['date','mood','libido','appetite','energy','sleep','bottomGrowth','skin','voice','period','notes'];
   const esc = s => {
     if (s==null) return '';
     s = String(s);
-    return /[",\\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
   };
-  return [head.join(',')].concat(rows.map(r=>head.map(h=>esc(r[h])).join(','))).join('\\n');
+  return [head.join(',')].concat(rows.map(r=>head.map(h=>esc(r[h])).join(','))).join('\n');
 }
 
 function fromCSV(text){
-  const lines = text.trim().split(/\\r?\\n/);
+  const lines = text.trim().split(/\r?\n/);
   if(lines.length<=1) return [];
   const header = lines[0].split(',');
   const idx = Object.fromEntries(header.map((h,i)=>[h.trim(),i]));
@@ -127,15 +233,19 @@ function fromCSV(text){
     }
     cols.push(cur);
     const get = k => cols[idx[k]] ?? '';
-    rows.push({
+    rows.push(normalizeRow({
       date:get('date'),
-      mood:Number(get('mood')||3),
-      libido:Number(get('libido')||3),
-      appetite:get('appetite')||'',
-      energy:Number(get('energy')||3),
-      sleep:Number(get('sleep')||3),
-      notes:get('notes')||''
-    });
+      mood:get('mood'),
+      libido:get('libido'),
+      appetite:get('appetite'),
+      energy:get('energy'),
+      sleep:get('sleep'),
+      bottomGrowth:(get('bottomGrowth')||'').toLowerCase().startsWith('y') || get('bottomGrowth')==='true',
+      skin:get('skin'),
+      voice:(get('voice')||'').toLowerCase().startsWith('y') || get('voice')==='true',
+      period:get('period'),
+      notes:get('notes')
+    }));
   }
   return rows;
 }
@@ -145,14 +255,20 @@ function filterByDays(days){
   const d = new Date(); d.setDate(d.getDate()-days+1);
   const off = d.getTimezoneOffset();
   const cut = new Date(d.getTime()-off*60000).toISOString().slice(0,10);
-  return entries.filter(e=>e.date >= cut);
+  return entries.filter(e=>e.date >= cut).sort((a,b)=>a.date<b.date?-1:1);
 }
 
 // UI init
 $('date').value = todayISO();
-['mood','libido','energy','sleep'].forEach(id => upVal($(id), $(id+'Val')));
+['mood','libido','energy','sleep'].forEach(id => bindRange(id, id+'Val'));
 $('save').onclick = saveEntry;
-$('reset').onclick = () => { $('date').value=todayISO(); ['mood','libido','energy','sleep'].forEach(id=>$(id).value=3); $('appetite').value=''; $('notes').value=''; };
+$('reset').onclick = () => {
+  $('date').value=todayISO();
+  ['mood','libido','energy','sleep'].forEach(id=>$(id).value=3);
+  ['appetite','skin','period'].forEach(id=>$(id).value='');
+  ['bottomGrowth','voice'].forEach(id=>$(id).checked=false);
+  $('notes').value='';
+};
 $('exportCsv').onclick = () => {
   const blob = new Blob([toCSV(getEntries())], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob); const a = document.createElement('a');
@@ -177,7 +293,7 @@ function draw(){
   const libido = data.map(d=>d.libido);
   const energy = data.map(d=>d.energy);
   const sleep = data.map(d=>d.sleep);
-  const ctx = $('lineChart').getContext('2d');
+  const ctx = document.getElementById('lineChart').getContext('2d');
   if(chart) chart.destroy();
   chart = new Chart(ctx, {
     type:'line',
@@ -197,8 +313,9 @@ function draw(){
     }
   });
 }
-$('range').onchange = draw;
+document.getElementById('range').onchange = draw;
 </script>
 </body>
 </html>
+
 
